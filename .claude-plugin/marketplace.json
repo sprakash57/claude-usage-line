@@ -1,0 +1,6 @@
+{
+  "name": "claude-usage-line",
+  "description": "Claude Code status line showing rate limits, context and auto-compact usage",
+  "owner": { "name": "sprakash57" },
+  "plugins": [{ "name": "usage-line", "source": "./" }]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "usage-line",
+  "version": "0.1.0",
+  "description": "Status line: 5h limit, weekly limit, context fill and distance to auto-compact",
+  "author": { "name": "sprakash57" },
+  "license": "MIT"
+}
