@@ -11,7 +11,8 @@ export type Config = {
   compactRedPct: number
   dailyBudgetUsd?: number
   alerts: 'off' | 'once' | 'every'
-  cacheTtlMin: number
+  // unset: worked out from the plan and Claude Code's own setting
+  cacheTtlMin?: number
 }
 
 export const DEFAULTS: Config = {
@@ -20,7 +21,6 @@ export const DEFAULTS: Config = {
   compactAmberPct: 80,
   compactRedPct: 95,
   alerts: 'once',
-  cacheTtlMin: 5,
 }
 
 export type Readings = {

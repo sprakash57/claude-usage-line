@@ -123,11 +123,84 @@ test('cache, skills and memory come from the breakdown, and the cache counts dow
   // a subagent's turn doesn't count
   breakdown.apiUsage = { input_tokens: 500, output_tokens: 80, cache_creation_input_tokens: 1_500, cache_read_input_tokens: 18_000 }
   await $.turn.complete({ ...turn, agentId: 'a1' })
-  expect(lines.at(-1)).toEndWith('🟢 cache 90% 5m · 72 skills · 2 mem')
+  expect(lines.at(-1)).toEndWith('⚪ cache – · 72 skills · 2 mem')
   await $.turn.complete(turn)
   expect(lines.at(-1)).toEndWith('🟢 cache 90% 5m · 72 skills · 2 mem')
   await clock.advance(3 * MIN)
   expect(lines.at(-1)).toEndWith('🟢 cache 90% 2m · 72 skills · 2 mem')
   await clock.advance(3 * MIN)
   expect(lines.at(-1)).toEndWith('🟡 cache 90% cold · 72 skills · 2 mem')
+})
+
+test('on a subscription the cache lives an hour unless Claude Code is told otherwise', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  mock.store(on)
+  const breakdown = {
+    percentage: 12, rawMaxTokens: 200_000, memoryFiles: [],
+    apiUsage: { input_tokens: 500, output_tokens: 80, cache_creation_input_tokens: 1_500, cache_read_input_tokens: 18_000 },
+  }
+  const resetsAt = new Date(NOW + 3 * 60 * MIN).toISOString()
+  const { lines } = engine(on, () => ({
+    context: { percent: 10, window: 200_000, breakdown } as unknown as SessionUsage['context'],
+    rateLimits: [{ kind: 'five_hour', percentUsed: 5, resetsAt }],
+  }))
+  on('turn.complete', () => ({ text: '' }))
+  const turn = { answer: 'OK', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer' } as const
+  await $.session.start(start)
+  await $.turn.complete(turn)
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('🟢 cache 90% 1h00m')
+})
+
+test('promptCacheTtl in settings sets the countdown', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  mock.store(on)
+  on('settings.read', () => ({ value: { promptCacheTtl: '5m' } }))
+  const breakdown = {
+    percentage: 12, rawMaxTokens: 200_000, memoryFiles: [],
+    apiUsage: { input_tokens: 500, output_tokens: 80, cache_creation_input_tokens: 1_500, cache_read_input_tokens: 18_000 },
+  }
+  const resetsAt = new Date(NOW + 3 * 60 * MIN).toISOString()
+  const { lines } = engine(on, () => ({
+    context: { percent: 10, window: 200_000, breakdown } as unknown as SessionUsage['context'],
+    rateLimits: [{ kind: 'five_hour', percentUsed: 5, resetsAt }],
+  }))
+  on('turn.complete', () => ({ text: '' }))
+  const turn = { answer: 'OK', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer' } as const
+  await $.session.start(start)
+  await $.turn.complete(turn)
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('🟢 cache 90% 5m')
+})
+
+test('/clear and compaction start the cache count over', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  mock.store(on)
+  const breakdown = {
+    percentage: 40, rawMaxTokens: 200_000, memoryFiles: [],
+    apiUsage: { input_tokens: 500, output_tokens: 80, cache_creation_input_tokens: 1_500, cache_read_input_tokens: 18_000 },
+  }
+  let startedAt = NOW
+  const resetsAt = new Date(NOW + 3 * 60 * MIN).toISOString()
+  const { lines } = engine(on, () => ({
+    startedAt,
+    context: { percent: 10, window: 200_000, breakdown } as unknown as SessionUsage['context'],
+    rateLimits: [{ kind: 'five_hour', percentUsed: 5, resetsAt }],
+  }))
+  on('turn.complete', () => ({ text: '' }))
+  const turn = { answer: 'OK', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer' } as const
+  await $.session.start(start)
+  await $.turn.complete(turn)
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('🟢 cache 90%')
+
+  startedAt = NOW + MIN // /clear
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('⚪ cache –')
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('🟢 cache 90%')
+
+  breakdown.percentage = 8 // compacted
+  await $.turn.complete(turn)
+  expect(lines.at(-1)).toContain('⚪ cache –')
 })

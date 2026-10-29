@@ -1,6 +1,6 @@
 import type { EngineInterface, PluginOptions, Register } from 'claude-code'
 import { check, emptyAlerts } from './lib/alerts'
-import { evaluateCache, evaluateLoaded } from './lib/extras'
+import { cacheTtlMs, evaluateCache, evaluateLoaded } from './lib/extras'
 import { emptyTrack, sample, turnsLeft } from './lib/forecast'
 import { line, wallText } from './lib/format'
 import { dayKey, keysFor, spendKey, staleKeys, sum } from './lib/ledger'
@@ -20,7 +20,7 @@ export const readConfig = (o: PluginOptions): Config => ({
   compactRedPct: num(o.compactRedPct, DEFAULTS.compactRedPct)!,
   dailyBudgetUsd: num(o.dailyBudgetUsd),
   alerts: o.alerts === 'off' || o.alerts === 'every' ? o.alerts : DEFAULTS.alerts,
-  cacheTtlMin: num(o.cacheTtlMin, DEFAULTS.cacheTtlMin)!,
+  cacheTtlMin: num(o.cacheTtlMin),
 })
 
 // what one load of the module remembers between draws; `register` starts it over
@@ -32,10 +32,15 @@ const fresh = (config: Config) => ({
   compactEpoch: 0,
   lastCompact: undefined as number | undefined,
   lastSpend: undefined as number | undefined,
+  // the conversation the counts below belong to; /clear starts a new one
+  startedAt: undefined as number | undefined,
   responses: 0,
   lastResponseAt: undefined as number | undefined,
   // while a turn runs the cache is being refreshed, so no countdown
   turnActive: false,
+  // Claude Code's own cache lifetime choices, read at session start
+  ttlEnv: undefined as string | undefined,
+  ttlSetting: undefined as unknown,
   warned: false,
   timer: undefined as { cancel: () => void } | undefined,
   // draws one at a time, so the timer and a turn never race on alert state
@@ -61,7 +66,16 @@ async function draw($: EngineInterface, turnEnded: boolean) {
   const costUsd = usage.cost?.usd ?? 0
   const fivePct = usage.rateLimits.find(l => l.kind === 'five_hour')?.percentUsed
 
-  if (compactPct !== undefined && s.lastCompact !== undefined && compactPct < s.lastCompact - 10) s.compactEpoch++
+  // /clear and compaction both start a conversation the cache has never seen
+  const cleared = s.startedAt !== undefined && usage.startedAt !== s.startedAt
+  const compacted = compactPct !== undefined && s.lastCompact !== undefined && compactPct < s.lastCompact - 10
+  if (cleared || compacted) {
+    s.compactEpoch++
+    s.responses = 0
+    s.lastResponseAt = undefined
+    s.compact = emptyTrack()
+  }
+  s.startedAt = usage.startedAt
   s.lastCompact = compactPct ?? s.lastCompact
   if (turnEnded) {
     s.responses++
@@ -90,7 +104,13 @@ async function draw($: EngineInterface, turnEnded: boolean) {
     last && { read: last.cache_read_input_tokens, write: last.cache_creation_input_tokens, uncached: last.input_tokens },
     s.responses,
     idleMs,
-    s.config.cacheTtlMin * 60_000,
+    cacheTtlMs({
+      overrideMin: s.config.cacheTtlMin,
+      env: s.ttlEnv,
+      setting: s.ttlSetting,
+      mode: v.mode,
+      overLimit: usage.rateLimits.some(l => l.kind !== 'spend_limit' && l.percentUsed >= 100),
+    }),
   )
   const memoryTokens = b?.memoryFiles.reduce((a, m) => a + m.tokens, 0) ?? 0
   const loaded =
@@ -113,6 +133,11 @@ function redraw($: EngineInterface, turnEnded: boolean) {
   return s.queue
 }
 
+async function readTtl($: EngineInterface) {
+  s.ttlEnv = await $.env.get('CLAUDE_CODE_PROMPT_CACHE_TTL').catch(() => undefined)
+  s.ttlSetting = await $.settings.read({ key: 'promptCacheTtl' }).catch(() => undefined)
+}
+
 async function prune($: EngineInterface) {
   const keys = await $.store.keys()
   const now = await $.clock.now()
@@ -132,6 +157,7 @@ export const register: Register = (on, options) => {
     s.timer?.cancel()
     s.timer = $.clock.every(REFRESH_MS, () => tick($))
     await prune($).catch(() => {})
+    await readTtl($)
     await redraw($, false)
     return result
   })
