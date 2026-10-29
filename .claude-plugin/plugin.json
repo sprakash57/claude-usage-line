@@ -1,7 +1,57 @@
 {
   "name": "usage-line",
-  "version": "0.1.0",
-  "description": "Status line: 5h limit, weekly limit, context fill and distance to auto-compact",
-  "author": { "name": "sprakash57" },
-  "license": "MIT"
+  "version": "0.2.0",
+  "description": "Status line with a traffic light per limit: 5h, weekly, compaction, spend, prompt cache, plus skills and memory loaded",
+  "author": {
+    "name": "sprakash57"
+  },
+  "license": "MIT",
+  "userConfig": {
+    "amberPct": {
+      "type": "number",
+      "title": "Amber at (% of a rate limit)",
+      "description": "5h, weekly and gateway spend limits turn amber at this share used",
+      "default": 70
+    },
+    "redPct": {
+      "type": "number",
+      "title": "Red at (% of a rate limit)",
+      "description": "5h, weekly and gateway spend limits turn red at this share used",
+      "default": 90
+    },
+    "compactAmberPct": {
+      "type": "number",
+      "title": "Amber at (% to auto-compact)",
+      "description": "The light turns amber when the conversation is this close to auto-compaction",
+      "default": 80
+    },
+    "compactRedPct": {
+      "type": "number",
+      "title": "Red at (% to auto-compact)",
+      "description": "The light turns red when the conversation is this close to auto-compaction",
+      "default": 95
+    },
+    "dailyBudgetUsd": {
+      "type": "number",
+      "title": "Daily budget (USD, API only)",
+      "description": "Pay-per-token sessions: amber at 70%, red at 90% of this across today's sessions. Leave empty to just show spend"
+    },
+    "alerts": {
+      "type": "string",
+      "title": "Alerts",
+      "description": "off: never; once: one toast per limit, window and level; every: each time a limit gets worse",
+      "options": [
+        "once",
+        "every",
+        "off"
+      ],
+      "default": "once"
+    },
+    "cacheTtlMin": {
+      "type": "number",
+      "title": "Prompt cache lifetime (minutes)",
+      "description": "How long the prompt cache stays warm after a response; the line counts down to it. 5 is the API default; use 60 if your sessions get the 1-hour cache",
+      "default": 5
+    }
+  }
 }

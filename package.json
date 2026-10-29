@@ -1,0 +1,10 @@
+{
+  "name": "usage-line",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test && claude plugin test .",
+    "typecheck": "bunx tsc --noEmit -p .",
+    "validate": "claude plugin validate ."
+  }
+}
