@@ -32,8 +32,9 @@ const sorted = Object.fromEntries(Object.entries(history).sort(([a], [b]) => a.l
 writeFileSync(HISTORY, JSON.stringify(sorted, null, 2) + "\n");
 
 const total = Object.values(sorted).reduce((sum, n) => sum + n, 0);
-const since = Object.keys(sorted)[0] ?? new Date().toISOString().slice(0, 10);
-const badge = `![downloads](https://img.shields.io/badge/downloads-${total}-blue) <sub>git clones since ${since}</sub>`;
+const since = Object.keys(sorted).find((day) => sorted[day] > 0) ?? new Date().toISOString().slice(0, 10);
+// HTML, not Markdown: GitHub doesn't render Markdown on a line that starts with an HTML comment.
+const badge = `<img alt="downloads: ${total}" title="git clones since ${since}" src="https://img.shields.io/badge/downloads-${total}-blue">`;
 
 const readme = readFileSync(README, "utf8");
 const at = readme.indexOf(START), end = readme.indexOf(END);
