@@ -1,5 +1,7 @@
 # usage-line
 
+<!-- downloads:start --><!-- downloads:end -->
+
 A Claude Code mod that keeps every usage limit in the status line, each with its own traffic light:
 
 ```
