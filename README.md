@@ -1,6 +1,6 @@
 # usage-line
 
-<!-- downloads:start --><!-- downloads:end -->
+<!-- downloads:start -->![downloads](https://img.shields.io/badge/downloads-24-blue) <sub>git clones since 2026-10-17</sub><!-- downloads:end -->
 
 A Claude Code mod that keeps every usage limit in the status line, each with its own traffic light:
 
