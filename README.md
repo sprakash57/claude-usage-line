@@ -1,8 +1,31 @@
-# usage-line
+<p align="center">
+  <img src=".claude-plugin/icon.png" alt="" width="112">
+</p>
 
-<!-- downloads:start -->![downloads](https://img.shields.io/badge/downloads-24-blue) <sub>git clones since 2026-10-17</sub><!-- downloads:end -->
+<h1 align="center">usage-line</h1>
 
-A Claude Code mod that keeps every usage limit in the status line, each with its own traffic light:
+<p align="center">
+  <b>Don't get caught out by a Claude Code limit.</b><br>
+  Your 5-hour, weekly, compaction, spend and prompt-cache limits sit in the status line, each with its own traffic light.
+</p>
+
+<p align="center">
+  <!-- downloads:start --><img alt="downloads: 24" title="git clones since 2026-10-17" src="https://img.shields.io/badge/downloads-24-blue"><!-- downloads:end -->
+  <img alt="version" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsprakash57%2Fclaude-usage-line%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=orange">
+  <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-d97757">
+  <img alt="license: MIT" src="https://img.shields.io/badge/license-MIT-green">
+</p>
+
+<p align="center">
+  <code>/plugin install usage-line --marketplace sprakash57/claude-usage-line</code>
+</p>
+
+- 🚦 **See it at a glance:** green, amber or red for every limit, so you know when to slow down before you're cut off.
+- ⏱️ **Know what's coming:** when a limit turns amber, it shows the reset time, and in the red, roughly how many turns you have left.
+- 💸 **Keep the prompt cache warm:** shows how long the cache stays warm, so you can reply before your next turn costs full price.
+- 🔒 **Runs on your machine:** no extra API calls, no telemetry. Refreshes after every turn and every minute.
+
+## What you see
 
 ```
 🟢 5h 6% · 🟢 wk 13% ↓26 · 🟢 compact 3% · 🟢 cache 97% 58m · 72 skills · 0 mem   all clear
