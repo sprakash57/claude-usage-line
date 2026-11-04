@@ -85,7 +85,11 @@ claude --plugin-dir .   # a session with the mod loaded from this folder, reload
 
 ## Notes
 
-Built for the terminal; other surfaces are untested. Built on Claude Code's early-access plugin hooks API, which may change between releases.
+Works in the Claude Code terminal and the VS Code extension; other surfaces are untested. Built on Claude Code's early-access plugin hooks API, which may change between releases.
+
+## Contributing
+
+Contributions are welcome. Fork the repo, make your change on a branch, run `bun run test` and `bun run typecheck`, and open a pull request against `main`. For bigger changes, open an issue first so we can agree on the approach.
 
 ## License
 
