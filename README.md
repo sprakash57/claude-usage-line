@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <!-- downloads:start --><img alt="downloads: 127" title="git clones since 2026-10-28" src="https://img.shields.io/badge/downloads-127-blue"><!-- downloads:end -->
+  <!-- downloads:start --><img alt="downloads: 145" title="git clones since 2026-10-28" src="https://img.shields.io/badge/downloads-145-blue"><!-- downloads:end -->
   <img alt="version" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsprakash57%2Fclaude-usage-line%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=orange">
   <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-d97757">
   <img alt="license: MIT" src="https://img.shields.io/badge/license-MIT-green">
